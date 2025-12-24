@@ -16,25 +16,21 @@ Generate secure passphrases offline.
     -Seperator character
     -Add a number
     -Add a special character
+	-Add an uppercase word
     -Re-roll
 -Calculates passphrase entropy (strength)
 #>
 
 #region Parameters
 $ScriptName = "PowerPassphrase.ps1"
-$Version = "1.17"
-$LastModified = (Get-Item .).LastWriteTime
+$Version = "1.21"
+$LastModified = "12/24/2025"
 $Author = "Matt Karwoski"
 $VerbosePreference = "Continue" # Default = "SilentlyContinue"
 $ErrorActionPreference = "SilentlyContinue" # Default = "Continue"
 $WarningPreference = "Continue" # Default = "Continue"
 $ErrorView = "NormalView" # Default = "NormalView"
 $ConfirmPreference = "None" # Default = "High"
-# Set-StrictMode -Version latest
-# Set-StrictMode -Off
-# Set-PowerCLIConfiguration -Scope User -ParticipateInCEIP $false -Confirm:$false
-# Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
-# Enable-PSRemoting
 $PSDefaultParameterValues["Write-Host:ForegroundColor"] = "Green"
 $PSDefaultParameterValues["Write-Host:BackgroundColor"] = "Black"
 $Host.UI.RawUI.WindowTitle = "$ScriptName"
@@ -271,6 +267,10 @@ do {
 } until ($AddSpecial -like 'y' -or $AddSpecial -like 'n')
 
 do {
+    $AddUppercase = Read-Host "Add an uppercase word? (y/n)"
+} until ($AddUppercase -like 'y' -or $AddUppercase -like 'n')
+
+do {
 
     # Get random array of words
     [array]$Words = @()
@@ -293,6 +293,12 @@ do {
         $Words[$RandomIndex] = $Words[$RandomIndex] + $RandomSpecial
     }
 
+	# Make random word uppercase
+    if ($AddUppercase -like 'y') {
+        $RandomIndex = Get-Random -Minimum 0 -Maximum ($Words.Length)
+        $Words[$RandomIndex] = ($Words[$RandomIndex]).ToUpper()
+    }
+
     # Build the passphrase
     $Passphrase = $Words -Join "$Sep"
 
@@ -312,7 +318,7 @@ do {
         $Splat = @{ForegroundColor = "Red"; BackgroundColor = "Black"}
     }
 
-    Write-Host "Randomly generated passphrase:" -ForegroundColor Cyan
+    Write-Host "Randomly generated passphrase: " -ForegroundColor Cyan -NoNewline
     Write-Animation $Passphrase -FGColor Yellow
     Write-Host ""
     Write-Host "Passphrase entropy: " -NoNewLine -ForegroundColor Cyan
